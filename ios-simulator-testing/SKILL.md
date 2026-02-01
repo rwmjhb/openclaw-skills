@@ -124,6 +124,53 @@ caffeinate -u -t 5
 
 When the app needs **programmatic navigation** without UI clicking.
 
+## Accessibility: iOS Accessibility Inspector (Xcode)
+
+Use this when the Mac is **UNLOCKED** and you can run the app from Xcode.
+This is Flutter’s recommended iOS-side scanner workflow.
+
+Steps:
+1. Open your Flutter project’s `ios/` folder in Xcode.
+2. Select an iOS Simulator target and click **Run**.
+3. In Xcode menu: **Xcode > Open Developer Tools > Accessibility Inspector**.
+4. In Accessibility Inspector:
+   - **Inspection > Enable Point to Inspect** → click UI elements in the running app to inspect accessibility attributes (label, traits, hint, value).
+   - Click **Audit** in the toolbar → **Run Audit** to generate a report of potential accessibility issues.
+
+Notes:
+- Requires the app to be running under Xcode (best signal for iOS a11y).
+- Not usable while locked/headless (loginwindow overlay blocks interaction).
+
+## Accessibility: Flutter Guideline Tests (flutter_test)
+
+Use Flutter’s `AccessibilityGuideline` API to add automated accessibility checks alongside existing widget tests.
+This does **not** require system UI automation or interacting with the iOS photo picker.
+
+Recommended checks:
+- `iOSTapTargetGuideline` (min tap target: 44×44)
+- `labeledTapTargetGuideline` (tap/long-press targets must be labeled)
+- `textContrastGuideline` (minimum contrast ratios)
+
+Template:
+```dart
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  testWidgets('Follows a11y guidelines', (tester) async {
+    final SemanticsHandle handle = tester.ensureSemantics();
+
+    // Replace with your app/widget
+    await tester.pumpWidget(const MyApp());
+
+    await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+
+    handle.dispose();
+  });
+}
+```
+
 ### Launch in debug mode
 ```bash
 cd <flutter-project>
